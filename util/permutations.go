@@ -104,21 +104,11 @@ func (d defaultPermutationService) PermuteWithKey(key string, data [32]byte) ([3
 		return [32]byte{}, err
 	}
 	permuted := [32]byte{}
-	currentAt := 0
-	counter := 0
-	for _, v := range perm {
+	for i, v := range perm {
 		mask := byte(1 << (v%8 - 1))
-		bit := data[v/8] & mask
-		// TODO optimize this
-		if bit != 0 {
-			permuted[currentAt] |= mask
-		} else {
-			permuted[currentAt] &^= mask
-		}
-		counter++
-		if counter%8 == 0 {
-			currentAt++
-			counter = 0
+		permuted[i/8] &^= mask
+		if data[v/8]&mask != 0 {
+			permuted[i/8] |= mask
 		}
 	}
 	return permuted, nil
