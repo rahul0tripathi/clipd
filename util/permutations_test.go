@@ -64,6 +64,6 @@ func TestNewDefaultPermutationService(t *testing.T) {
 	if !assert.NoError(t, err, "failed to call PermuteWithKey") {
 		return
 	}
-	t.Logf("PremutedKey: %x\n", withKey.Data)
+	t.Logf("PremutedKey: %x key-id: %s\n", withKey.Data, withKey.Key)
 
 }
