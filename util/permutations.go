@@ -98,17 +98,23 @@ func (d defaultPermutationService) PermuteWithKey(key string, data [32]byte) ([3
 	if err != nil {
 		return [32]byte{}, err
 	}
-	perm := [256]uint8{}
-	err = DecodeAndUnmarshal(permutation, &perm)
+	order := [256]uint8{}
+	// parse the permutation table
+	// order array contains the index of bit from the data array at ith position
+	// ie if order = [1,2,0] and data = [1,1,0] (assuming in bits)
+	// permuted = [1,0,1]
+	err = DecodeAndUnmarshal(permutation, &order)
 	if err != nil {
 		return [32]byte{}, err
 	}
 	permuted := [32]byte{}
-	for i, v := range perm {
-		mask := byte(1 << (v%8 - 1))
-		permuted[i/8] &^= mask
-		if data[v/8]&mask != 0 {
-			permuted[i/8] |= mask
+	// the above lines permutes the bits of data array
+	// according to the permutation order defined in order array
+	for i, v := range order {
+		// check if the value at vth bit is set in the original data
+		if data[v/8]&byte(128>>(v%8)) != 0 {
+			// if vth bit is set then set the ith bit of empty array
+			permuted[i/8] |= byte(128 >> (i % 8))
 		}
 	}
 	return permuted, nil
