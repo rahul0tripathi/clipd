@@ -19,15 +19,18 @@ type defaultKeybindingService struct {
 	logger *zap.Logger
 }
 
-func (k *defaultKeybindingService) attachListener(hk *hotkey.Hotkey) (<-chan bool, error) {
+func (k *defaultKeybindingService) attachListener(key hotkey.Key) (<-chan bool, error) {
+	hk := hotkey.New([]hotkey.Modifier{hotkey.ModCmd, hotkey.ModShift}, key)
 	err := hk.Register()
 	if err != nil {
 		k.logger.Fatal("hotkey: failed to register hotkey", zap.Error(err))
 		return nil, ErrHandlerFailed
 	}
+	k.logger.Info("hotkey: registered")
 	// create unbuffered chan
 	write := make(chan bool)
 	go func(logger *zap.Logger) {
+		logger.Info("starting watcher")
 		for {
 			select {
 			case <-hk.Keydown():
@@ -43,12 +46,10 @@ func (k *defaultKeybindingService) attachListener(hk *hotkey.Hotkey) (<-chan boo
 	return write, nil
 }
 func (k *defaultKeybindingService) GetEncryptListener() (writeTo <-chan bool, err error) {
-	hk := hotkey.New([]hotkey.Modifier{hotkey.ModCmd, hotkey.ModShift}, hotkey.KeyE)
-	return k.attachListener(hk)
+	return k.attachListener(hotkey.KeyE)
 }
 func (k *defaultKeybindingService) GetDecryptListener() (writeTo <-chan bool, err error) {
-	hk := hotkey.New([]hotkey.Modifier{hotkey.ModCtrl, hotkey.ModShift}, hotkey.KeyM)
-	return k.attachListener(hk)
+	return k.attachListener(hotkey.KeyD)
 }
 func NewDefaultKeybindService(logger *zap.Logger) (Service, error) {
 	service := &defaultKeybindingService{logger: logger}
