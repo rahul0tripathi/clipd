@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/urfave/cli/v2"
+	"golang.design/x/hotkey/mainthread"
 	"log"
 	"os"
 )
@@ -44,7 +46,17 @@ func main() {
 					},
 				},
 				Action: func(cCtx *cli.Context) error {
-					fmt.Println("server init called")
+					salt := cCtx.String("salt")
+					if salt == "" {
+						return errors.New("salt not given")
+					}
+					keyDir := cCtx.String("keydir")
+					if keyDir == "" {
+						return errors.New("key directory not given")
+					}
+					mainthread.Init(func() {
+						start(salt, keyDir)
+					})
 					return nil
 				},
 			},
