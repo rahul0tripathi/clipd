@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/syndtr/goleveldb/leveldb/errors"
 	"github.com/urfave/cli/v2"
 	"golang.design/x/hotkey/mainthread"
@@ -17,15 +16,8 @@ func main() {
 				Name:    "init",
 				Aliases: []string{"i"},
 				Usage:   "initialize the clipd setup",
-				Flags: []cli.Flag{
-					&cli.StringFlag{
-						Name:    "keydir",
-						Aliases: []string{"dir"},
-						Usage:   "define the directory for storing key permutations",
-					},
-				},
 				Action: func(cCtx *cli.Context) error {
-					fmt.Println("service initaluzed ")
+					initd()
 					return nil
 				},
 			},
