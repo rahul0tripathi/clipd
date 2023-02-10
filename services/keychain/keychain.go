@@ -2,7 +2,7 @@ package keychain
 
 import (
 	"errors"
-	"github.com/keybase/go-keychain"
+	goKeychain "github.com/keybase/go-keychain"
 	"go.uber.org/zap"
 	"os/user"
 )
@@ -29,8 +29,8 @@ type keychainService struct {
 }
 
 func (k *keychainService) CreateNewSecret(password []byte, username []byte) error {
-	item := keychain.NewItem()
-	item.SetSecClass(keychain.SecClassGenericPassword)
+	item := goKeychain.NewItem()
+	item.SetSecClass(goKeychain.SecClassGenericPassword)
 	item.SetService(ChainService)
 	current, err := user.Current()
 	if username == nil {
@@ -43,10 +43,10 @@ func (k *keychainService) CreateNewSecret(password []byte, username []byte) erro
 	item.SetLabel("MasterPassword")
 	item.SetAccessGroup(AccessGroup)
 	item.SetData(password)
-	item.SetSynchronizable(keychain.SynchronizableNo)
-	item.SetAccessible(keychain.AccessibleWhenPasscodeSetThisDeviceOnly)
-	err = keychain.AddItem(item)
-	if err == keychain.ErrorDuplicateItem {
+	item.SetSynchronizable(goKeychain.SynchronizableNo)
+	item.SetAccessible(goKeychain.AccessibleWhenPasscodeSetThisDeviceOnly)
+	err = goKeychain.AddItem(item)
+	if err == goKeychain.ErrorDuplicateItem {
 		return ErrSecretAlreadyExists
 	}
 	if err != nil {
@@ -56,8 +56,8 @@ func (k *keychainService) CreateNewSecret(password []byte, username []byte) erro
 	return nil
 }
 func (k *keychainService) GetPassword(username []byte) ([]byte, error) {
-	query := keychain.NewItem()
-	query.SetSecClass(keychain.SecClassGenericPassword)
+	query := goKeychain.NewItem()
+	query.SetSecClass(goKeychain.SecClassGenericPassword)
 	query.SetService(ChainService)
 	current, err := user.Current()
 	if username == nil {
@@ -68,9 +68,9 @@ func (k *keychainService) GetPassword(username []byte) ([]byte, error) {
 	}
 	query.SetAccount(string(username))
 	query.SetAccessGroup(AccessGroup)
-	query.SetMatchLimit(keychain.MatchLimitOne)
+	query.SetMatchLimit(goKeychain.MatchLimitOne)
 	query.SetReturnData(true)
-	results, err := keychain.QueryItem(query)
+	results, err := goKeychain.QueryItem(query)
 	if err != nil {
 		k.logger.Error("failed to query keychain items", zap.Error(err))
 		return nil, ErrGetSecret
