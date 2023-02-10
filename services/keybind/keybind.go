@@ -2,7 +2,6 @@ package keybind
 
 import (
 	"errors"
-	"fmt"
 	"go.uber.org/zap"
 	"golang.design/x/hotkey"
 )
@@ -21,20 +20,17 @@ type defaultKeybindingService struct {
 }
 
 func (k *defaultKeybindingService) attachListener(hk *hotkey.Hotkey) (<-chan bool, error) {
-	fmt.Println("herer3")
 	err := hk.Register()
 	if err != nil {
 		k.logger.Fatal("hotkey: failed to register hotkey", zap.Error(err))
 		return nil, ErrHandlerFailed
 	}
-	fmt.Println("hereh1")
 	// create unbuffered chan
 	write := make(chan bool)
 	go func(logger *zap.Logger) {
 		for {
 			select {
 			case <-hk.Keydown():
-				fmt.Println("recived")
 				select {
 				case write <- true:
 					continue
@@ -44,7 +40,6 @@ func (k *defaultKeybindingService) attachListener(hk *hotkey.Hotkey) (<-chan boo
 			}
 		}
 	}(k.logger)
-	fmt.Println("here")
 	return write, nil
 }
 func (k *defaultKeybindingService) GetEncryptListener() (writeTo <-chan bool, err error) {
