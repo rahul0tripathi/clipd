@@ -1,0 +1,68 @@
+name: goreleaser
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  artifact-build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+      - name: Build darwin
+        if: matrix.os == 'macos-latest'
+        run: |
+          make build-release
+          mv build/clipd build/clipd-macos-latest-amd64
+      - uses: actions/upload-artifact@v2
+        with:
+          name: clipd-${{ matrix.os }}-amd64
+          path: build/clipd-${{ matrix.os }}-amd64
+
+  release:
+    runs-on: ubuntu-latest
+    needs: [artifact-build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      # need to setup to avoid https://goreleaser.com/deprecations/#builds-for-darwinarm64
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.19
+      - name: Download macos
+        uses: actions/download-artifact@v2
+        with:
+          name: clipd-macos-latest-amd64
+          path: build
+      - name: Correct goreleaser prebuilt path
+        run: |
+          # as it is the format goreleaser expects. See .goreleaser.yml -> prebuilt -> path
+          # we need at least an arm url for brew: https://github.com/kreuzwerker/homebrew-taps/issues/11
+          cp build/clipd-macos-latest-amd64 build/clipd_darwin_amd64
+          cp build/clipd-macos-latest-amd64 build/clipd_darwin_arm64
+          ls -lash build
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v2
+        with:
+          distribution: goreleaser-pro
+          version: latest
+          args: release --rm-dist
+        env:
+          GORELEASER_KEY: ${{ secrets.GORELEASER_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GORELEASER_TOKEN: ${{ secrets.GORELEASER_TOKEN }}
