@@ -1,9 +1,15 @@
-name: goreleaser
+name: build
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - master
+  pull_request:
+    types: ['opened', 'synchronize']
+    paths:
+      - '**.go'
+      - go.mod
+      - '.github/workflows/**'
 
 jobs:
   artifact-build:
