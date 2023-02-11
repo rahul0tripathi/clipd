@@ -15,7 +15,7 @@ func main() {
 			{
 				Name:    "init",
 				Aliases: []string{"i"},
-				Usage:   "initialize the clipd setup",
+				Usage:   "initialise the clipd setup",
 				Action: func(cCtx *cli.Context) error {
 					initd()
 					return nil
